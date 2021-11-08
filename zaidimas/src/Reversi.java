@@ -395,7 +395,6 @@ public class Reversi extends JPanel implements MouseListener {
                     if (data[i][j - 2] == turn) {
                         for (int k = j - 1; k <= oJ; k++) {
                             data[i][k] = turn;
-                            System.out.println("up-fillall" + i + " " + k);
                         }
                         done = true;
                     } else if (data[i][j - 2] == notTurn) {
@@ -421,7 +420,6 @@ public class Reversi extends JPanel implements MouseListener {
                     if (data[i + 2][j - 2] == turn) {
                         int m = i + 1;
                         for (int k = j - 1; k < oJ; k++) {
-                            System.out.println("up-right" + m + " " + k);
                             data[m][k] = turn;
                             m--;
                         }
@@ -450,7 +448,6 @@ public class Reversi extends JPanel implements MouseListener {
                     if (data[i + 2][j] == turn) {
                         for (int k = i + 1; k > oI; k--) {
                             data[k][j] = turn;
-                            System.out.println("right" + k + " " + j);
                         }
                         done = true;
                     } else if (data[i + 2][j] == notTurn) {
@@ -476,7 +473,6 @@ public class Reversi extends JPanel implements MouseListener {
                     if (data[i + 2][j + 2] == turn) {
                         int m = i + 1;
                         for (int k = j + 1; k > oJ; k--) {
-                            System.out.println("right-down" + m + " " + k);
                             data[m][k] = turn;
                             m--;
                         }
@@ -506,7 +502,6 @@ public class Reversi extends JPanel implements MouseListener {
                     if (data[i][j + 2] == turn) {
                         for (int k = j + 1; k > oJ; k--) {
                             data[i][k] = turn;
-                            System.out.println("down" + i + " " + k);
                         }
                         done = true;
                     } else if (data[i][j + 2] == notTurn) {
@@ -532,7 +527,6 @@ public class Reversi extends JPanel implements MouseListener {
                     if (data[i - 2][j + 2] == turn) {
                         int m = i - 1;
                         for (int k = j + 1; k > oJ; k--) {
-                            System.out.println("down-left" + m + " " + k);
                             data[m][k] = turn;
                             m++;
                         }
@@ -562,7 +556,6 @@ public class Reversi extends JPanel implements MouseListener {
                     if (data[i - 2][j] == turn) {
                         for (int k = i - 2; k < oI; k++) {
                             data[k][j] = turn;
-                            System.out.println("down-left" + k + " " + j);
                         }
                         done = true;
                     } else if (data[i - 2][j] == notTurn) {
@@ -588,7 +581,6 @@ public class Reversi extends JPanel implements MouseListener {
                     if (data[i - 2][j - 2] == turn) {
                         int m = i - 1;
                         for (int k = j - 1; k < oJ; k++) {
-                            System.out.println("down" + m + " " + k);
                             data[m][k] = turn;
                             m++;
                         }
