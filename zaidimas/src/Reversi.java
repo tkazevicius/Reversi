@@ -1,643 +1,313 @@
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.*;
+import java.awt.Rectangle;
+import java.awt.event.*;
+import javax.swing.*;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+public class Reversi extends Canvas implements MouseListener
+{
+    public static void main(String[] args)
+    {
+        JFrame win = new JFrame("Reversi");
+        win.setSize(800,900);
+        win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        win.add( new Reversi() );
+        win.setVisible(true);
+    }
 
-/**
- * Reversi Class
- */
+    private final int NONE = 0;
+    private int[][] toFill;
+    private final int BLACK = 1;
+    private final int WHITE = 2;
+    private boolean turnOver = false;
+    private boolean inBounds;
+    private boolean inBounds2;
 
-public class Reversi extends JPanel implements MouseListener {
-    static int[][] data = new int[8][8];
-    static int gameSizeInt = 8;
-    static JPanel panel = new JPanel();
-    static int turn = 2;
-    static int black = 0;
-    static int white = 0;
-    static int free = 0;
-    static int blue = 0;
-    static int fontX = 10;
-    static int fontY = 495;
-    static int noBlue = 0;
-    static boolean noOneWin = false;
+    private int player = BLACK;
 
-    public Reversi() {
-        JFrame frame = new JFrame();
-        frame.setTitle("Reversi");
-        frame.setLocationRelativeTo(null);
-        frame.setLocation(481, 505);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setResizable(false);
-        frame.getContentPane().setBackground(new Color(18, 199, 24));
+    private final Rectangle[][] boxes;
+    private final int[][] pieces;
 
-        panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                for (int i = 0; i < gameSizeInt; i++)
-                    for (int j = 0; j < gameSizeInt; j++) {
-                        g.setColor(new Color(18, 199, 24));
-                        g.fillRect(j * 60, i * 60, 60, 60);
+    public Reversi()
+    {
+        addMouseListener(this);
+        boxes = new Rectangle[8][8];
+        pieces = new int[8][8];
+        toFill = new int[8][8];
+        for ( int r=0; r<toFill.length; r++ )
+            for ( int c=0; c<toFill[0].length; c++ )
+                toFill[r][c]=0;
+        for ( int r=0; r<boxes.length; r++ )
+            for ( int c=0; c<boxes[0].length; c++ )
+            {
+                boxes[r][c] = new Rectangle(30+c*90,100+r*90,90,90);
+            }
+        pieces[3][3] = 2;
+        pieces[3][4] = 1;
+        pieces[4][3] = 1;
+        pieces[4][4] = 2;
+
+    }
+
+    public void paint( Graphics g)
+    {
+        g.setColor( Color.orange );
+        g.fillRect( 0, 0, 800, 900 );
+        g.setColor( Color.black );
+        Graphics2D g2 = (Graphics2D)g;
+        g.setFont( new Font("Arial", Font.BOLD, 48) );
+
+        // board
+        for (Rectangle[] rectangles : boxes)
+            for (int c = 0; c < boxes[0].length; c++) {
+                g2.draw(rectangles[c]);
+            }
+        // pieces
+        int scoreA = 0;
+        int scoreB = 0;
+        for ( int r=0; r<pieces.length; r++ )
+            for ( int c=0; c<pieces[0].length; c++ )
+                if ( pieces[r][c] > 0 )
+                {
+                    if ( pieces[r][c] == BLACK )
+                    {
                         g.setColor(Color.black);
-                        g.drawRect(j * 60, i * 60, 60, 60);
+                        scoreA++;
                     }
-                for (int i = 0; i < data.length; i++) {
-                    for (int j = 0; j < data[i].length; j++) {
-                        switch (data[i][j]) {
-                            case 0:
-                                break;
-
-                            case 1:
-                                g.setColor(Color.BLACK);
-                                g.fillOval(5 + i * 60, 5 + j * 60, 50, 50);
-                                break;
-
-                            case 2:
-                                g.setColor(Color.WHITE);
-                                g.fillOval(5 + i * 60, 5 + j * 60, 50, 50);
-                                break;
-
-                            case -1:
-                                g.setColor(Color.BLUE);
-                                g.fillOval(20 + i * 60, 20 + j * 60, 25, 25);
-                                break;
-
-                        }
+                    else if ( pieces[r][c] == WHITE )
+                    {
+                        g.setColor(Color.white);
+                        scoreB++;
                     }
+                    Rectangle box = boxes[r][c];
+                    g.fillOval(box.x+5, box.y+5, box.width-10, box.height-10);
                 }
-                g.setColor(Color.BLACK);
-                g.setFont(new Font("Courier New", Font.BOLD, 15));
-                if (free == 0) {
-                    if (black > white) {
-                        g.drawString("Black wins     Black = " + black + "  White = " + white, fontX, fontY);
-                    } else if (black == white || noOneWin) {
-                        g.drawString("Draw     Black = " + black + "  White = " + white, fontX, fontY);
-                    } else {
-                        g.drawString("White wins     Black = " + black + "  White = " + white, fontX, fontY);
-                    }
-                } else {
-                    if (turn == 1) {
-                        g.drawString("Black's Turn     Black = " + black + "  White = " + white, fontX, fontY);
-                    } else {
-                        g.drawString("White's Turn     Black = " + black + "  White = " + white, fontX, fontY);
-                    }
-                }
-            }
 
-            @Override
-            public Dimension getPreferredSize() {
-                return new Dimension(481, 505);
-            }
-        };
-
-        frame.add(panel);
-        panel.addMouseListener(this);
-        frame.pack();
-        frame.setVisible(true);
-
-    }
-
-    public static void main(String[] args) {
-        start();
-        SwingUtilities.invokeLater(Reversi::new);
-    }
-
-    static void start() {
-        data[(gameSizeInt / 2) - 1][(gameSizeInt / 2) - 1] = 1;
-        data[gameSizeInt / 2][(gameSizeInt / 2) - 1] = 2;
-        data[(gameSizeInt / 2) - 1][gameSizeInt / 2] = 2;
-        data[gameSizeInt / 2][gameSizeInt / 2] = 1;
-        help();
-        count();
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        int x, y, i, j;
-        x = e.getX();
-        y = e.getY();
-        i = x / 60;
-        j = y / 60;
-        if (isAccepted(i, j)) {
-            if (turn == 1) {
-                data[i][j] = turn;
-                fillAll(i, j);
-                turn = 2;
-            } else {
-                data[i][j] = turn;
-                fillAll(i, j);
-                turn = 1;
-            }
-            help();
-            panel.repaint();
-        }
-    }
-
-    boolean isAccepted(int i, int j) {
-        if (i < gameSizeInt && j < gameSizeInt) {
-            return data[i][j] == -1;
-        }
-        return false;
-    }
-
-    static void help() {
-        for (int i = 0; i < data.length; i++) {
-            for (int j = 0; j < data[i].length; j++) {
-                if (data[i][j] == -1) {
-                    data[i][j] = 0;
-                }
-            }
+        // status
+        g.setColor( Color.black );
+        g.setFont( new Font("Arial", Font.BOLD, 48) );
+        if(scoreA+scoreB != 64) {
+            g.drawString( (player==BLACK ? "Black" : "White") + "'s turn.", 50, 70 );
+            g.drawString( scoreA +" : "+ scoreB, 620, 70 );
+        } else if (scoreA > scoreB && scoreA+scoreB == 64) {
+            g.drawString( "Black wins!", 50, 70 );
+            g.drawString( scoreA +" : "+ scoreB, 620, 70 );
+        } else if (scoreA < scoreB && scoreA+scoreB == 64) {
+            g.drawString( "White wins!", 50, 70 );
+            g.drawString( scoreA +" : "+ scoreB, 620, 70 );
+        } else if (scoreA == scoreB && scoreA == 32) {
+            g.drawString( "Draw", 50, 70 );
+            g.drawString( scoreA +" : "+ scoreB, 620, 70 );
         }
 
-        for (int i = 0; i < data.length; i++) {
-            for (int j = 0; j < data[i].length; j++) {
-                if (data[i][j] == turn) {
-                    check(i, j);
-                }
-            }
-        }
+    }
 
-        count();
-        if (blue == 0 && free != 0) {
-            noBlue++;
-            if (noBlue >= 1) {
-                noOneWin = true;
-            }
-            if (!noOneWin) {
-                help();
-            }
+
+    public void mouseReleased( MouseEvent evt )
+    {
+        int x = evt.getX();
+        int y = evt.getY();
+
+        for ( int r=0; r<boxes.length; r++ )
+            for ( int c=0; c<boxes[0].length; c++ )
+                if ( boxes[r][c].contains( evt.getPoint() ) )
+                {
+                    if (player == BLACK && detectTurn(x,y)) {
+                        player=WHITE;
+                    }
+                    else if (player == WHITE && detectTurn(x,y)) {
+                        player=BLACK;
+                    }
+                    repaint();
+                    return;
+                }
+    }
+
+    public boolean detectTurn(int x, int y) {
+        int xCurrent = (x-30)/90;
+        int yCurrent = (y-100)/90;
+        turnOver = false;
+        move(xCurrent,yCurrent);
+        return turnOver;
+    }
+
+    public void move(int xCurrent, int yCurrent) {
+        int other;
+        int currentColor;
+        if (player == BLACK) {
+            other = 2;
+            currentColor = 1;
         } else {
-            noBlue = 0;
+            other = 1;
+            currentColor = 2;
         }
-    }
 
-    static void check(int i, int j) {
-        int notTurn;
-        int oI = i;
-        int oJ = j;
-        boolean done = false;
-        if (turn == 1) {
-            notTurn = 2;
-        } else {
-            notTurn = 1;
+        //down
+        if (yCurrent - 1 <= 8) {
+            if (pieces[yCurrent - 1][xCurrent] == other && pieces[yCurrent][xCurrent] == NONE) {
+                for (int pos = yCurrent - 2; pos >= 0; pos--) {
+
+                    if (pieces[pos][xCurrent] == NONE) {
+                        break;
+                    }
+
+                    if (pieces[pos][xCurrent] == player) {
+                        for(int i=pos;i<=yCurrent;i++)
+                            toFill[i][xCurrent]=3;
+                        turnOver=true;
+                    }
+                }
+            }
         }
 
         //up
-        while (i >= 0 && i < gameSizeInt && j - 1 >= 0 && j - 1 < gameSizeInt && !done) {
-            if (data[i][j - 1] == notTurn) {
-                if (j - 2 >= 0 && j - 2 < gameSizeInt) {
-                    if (data[i][j - 2] == 0) {
-                        data[i][j - 2] = -1;
-                        done = true;
-                    } else if (data[i][j - 2] == notTurn) {
-                        j = j - 1;
-                    } else {
-                        done = true;
+        if (yCurrent >= -1) {
+            if (pieces[yCurrent + 1][xCurrent] == other && pieces[yCurrent][xCurrent] == NONE) {
+                for (int pos = yCurrent + 2; pos < 8 ; pos++) {
+
+                    if (pieces[pos][xCurrent] == NONE) {
+                        break;
                     }
-                } else {
-                    done = true;
+
+                    if (pieces[pos][xCurrent] == player) {
+                        for(int i=yCurrent;i<=pos;i++)
+                            toFill[i][xCurrent]=3;
+                        turnOver=true;
+                    }
                 }
-            } else {
-                done = true;
             }
         }
-
-        j = oJ;
-        done = false;
-
-        //up-right
-        while (i + 1 >= 0 && i + 1 < gameSizeInt && j - 1 >= 0 && j - 1 < gameSizeInt && !done) {
-            if (data[i + 1][j - 1] == notTurn) {
-                if (i + 2 < gameSizeInt && j - 2 >= 0 && j - 2 < gameSizeInt) {
-                    if (data[i + 2][j - 2] == 0) {
-                        data[i + 2][j - 2] = -1;
-                        done = true;
-                    } else if (data[i + 2][j - 2] == notTurn) {
-                        j = j - 1;
-                        i = i + 1;
-                    } else {
-                        done = true;
-                    }
-                } else {
-                    done = true;
-                }
-            } else {
-                done = true;
-            }
-        }
-        i = oI;
-        j = oJ;
-        done = false;
-
-        //right
-        while (i + 1 >= 0 && i + 1 < gameSizeInt && j >= 0 && j < gameSizeInt && !done) {
-            if (data[i + 1][j] == notTurn) {
-                if (i + 2 < gameSizeInt) {
-                    if (data[i + 2][j] == 0) {
-                        data[i + 2][j] = -1;
-                        done = true;
-                    } else if (data[i + 2][j] == notTurn) {
-                        i = i + 1;
-                    } else {
-                        done = true;
-                    }
-                } else {
-                    done = true;
-                }
-            } else {
-                done = true;
-            }
-        }
-
-        i = oI;
-        done = false;
-
-        //right-down
-        while (i + 1 >= 0 && i + 1 < gameSizeInt && j + 1 >= 0 && j + 1 < gameSizeInt && !done) {
-            if (data[i + 1][j + 1] == notTurn) {
-                if (i + 2 < gameSizeInt && j + 2 < gameSizeInt) {
-                    if (data[i + 2][j + 2] == 0) {
-                        data[i + 2][j + 2] = -1;
-                        done = true;
-                    } else if (data[i + 2][j + 2] == notTurn) {
-                        i = i + 1;
-                        j = j + 1;
-                    } else {
-                        done = true;
-                    }
-                } else {
-                    done = true;
-                }
-            } else {
-                done = true;
-            }
-        }
-
-        i = oI;
-        j = oJ;
-        done = false;
-
-        //down
-        while (i >= 0 && i < gameSizeInt && j + 1 >= 0 && j + 1 < gameSizeInt && !done) {
-            if (data[i][j + 1] == notTurn) {
-                if (j + 2 < gameSizeInt) {
-                    if (data[i][j + 2] == 0) {
-                        data[i][j + 2] = -1;
-                        done = true;
-                    } else if (data[i][j + 2] == notTurn) {
-                        j = j + 1;
-                    } else {
-                        done = true;
-                    }
-                } else {
-                    done = true;
-                }
-            } else {
-                done = true;
-            }
-        }
-
-        j = oJ;
-        done = false;
-
-        //down-left
-        while (i - 1 >= 0 && i - 1 < gameSizeInt && j + 1 >= 0 && j + 1 < gameSizeInt && !done) {
-            if (data[i - 1][j + 1] == notTurn) {
-                if (i - 2 >= 0 && i - 2 < gameSizeInt && j + 2 < gameSizeInt) {
-                    if (data[i - 2][j + 2] == 0) {
-                        data[i - 2][j + 2] = -1;
-                        done = true;
-                    } else if (data[i - 2][j + 2] == notTurn) {
-                        j = j + 1;
-                        i = i - 1;
-                    } else {
-                        done = true;
-                    }
-                } else {
-                    done = true;
-                }
-            } else {
-                done = true;
-            }
-        }
-
-        i = oI;
-        j = oJ;
-        done = false;
 
         //left
-        while (i - 1 >= 0 && i - 1 < gameSizeInt && j >= 0 && j < gameSizeInt && !done) {
-            if (data[i - 1][j] == notTurn) {
-                if (i - 2 >= 0 && i - 2 < gameSizeInt) {
-                    if (data[i - 2][j] == 0) {
-                        data[i - 2][j] = -1;
-                        done = true;
-                    } else if (data[i - 2][j] == notTurn) {
-                        i = i - 1;
-                    } else {
-                        done = true;
+        if (xCurrent + 1 < 9) {
+            if (pieces[yCurrent][xCurrent + 1] == other && pieces[yCurrent][xCurrent] == NONE) {
+                for (int pos = xCurrent + 2; pos < 8; pos++) {
+
+                    if (pieces[yCurrent][pos] == NONE) {
+                        break;
                     }
-                } else {
-                    done = true;
+
+                    if (pieces[yCurrent][pos] == player) {
+                        for(int i=xCurrent;i<=pos;i++)
+                            toFill[yCurrent][i]=3;
+                        turnOver=true;
+                    }
                 }
-            } else {
-                done = true;
             }
         }
 
-        i = oI;
-        done = false;
-
-        //left-up
-        while (i - 1 >= 0 && i - 1 < gameSizeInt && j - 1 >= 0 && j - 1 < gameSizeInt && !done) {
-            if (data[i - 1][j - 1] == notTurn) {
-                if (i - 2 >= 0 && i - 2 < gameSizeInt && j - 2 >= 0 && j - 2 < gameSizeInt) {
-                    if (data[i - 2][j - 2] == 0) {
-                        data[i - 2][j - 2] = -1;
-                        done = true;
-                    } else if (data[i - 2][j - 2] == notTurn) {
-                        i = i - 1;
-                        j = j - 1;
-                    } else {
-                        done = true;
-                    }
-                } else {
-                    done = true;
-                }
-            } else {
-                done = true;
-            }
-        }
-
-    }
-
-    static void fillAll(int i, int j) {
-        int notTurn;
-        int oI = i;
-        int oJ = j;
-        boolean done = false;
-        if (turn == 1) {
-            notTurn = 2;
-        } else {
-            notTurn = 1;
-        }
-
-        //up
-        while (i >= 0 && i < gameSizeInt && j - 1 >= 0 && j - 1 < gameSizeInt && !done) {
-            if (data[i][j - 1] == notTurn) {
-                if (j - 2 >= 0 && j - 2 < gameSizeInt) {
-                    if (data[i][j - 2] == turn) {
-                        for (int k = j - 1; k <= oJ; k++) {
-                            data[i][k] = turn;
-                        }
-                        done = true;
-                    } else if (data[i][j - 2] == notTurn) {
-                        j = j - 1;
-                    } else {
-                        done = true;
-                    }
-                } else {
-                    done = true;
-                }
-            } else {
-                done = true;
-            }
-        }
-
-        j = oJ;
-        done = false;
-
-        //up-right
-        while (i + 1 >= 0 && i + 1 < gameSizeInt && j - 1 >= 0 && j - 1 < gameSizeInt && !done) {
-            if (data[i + 1][j - 1] == notTurn) {
-                if (i + 2 < gameSizeInt && j - 2 >= 0 && j - 2 < gameSizeInt) {
-                    if (data[i + 2][j - 2] == turn) {
-                        int m = i + 1;
-                        for (int k = j - 1; k < oJ; k++) {
-                            data[m][k] = turn;
-                            m--;
-                        }
-                        done = true;
-                    } else if (data[i + 2][j - 2] == notTurn) {
-                        j = j - 1;
-                        i = i + 1;
-                    } else {
-                        done = true;
-                    }
-                } else {
-                    done = true;
-                }
-            } else {
-                done = true;
-            }
-        }
-        i = oI;
-        j = oJ;
-        done = false;
 
         //right
-        while (i + 1 >= 0 && i + 1 < gameSizeInt && j >= 0 && j < gameSizeInt && !done) {
-            if (data[i + 1][j] == notTurn) {
-                if (i + 2 < gameSizeInt) {
-                    if (data[i + 2][j] == turn) {
-                        for (int k = i + 1; k > oI; k--) {
-                            data[k][j] = turn;
-                        }
-                        done = true;
-                    } else if (data[i + 2][j] == notTurn) {
-                        i = i + 1;
-                    } else {
-                        done = true;
+        if (xCurrent - 1 >= 0) {
+            if (pieces[yCurrent][xCurrent - 1] == other && pieces[yCurrent][xCurrent] == NONE) {
+                for (int pos = xCurrent - 2; pos >= 0; pos--) {
+
+                    if (pieces[yCurrent][pos] == NONE) {
+                        break;
                     }
-                } else {
-                    done = true;
+
+                    if (pieces[yCurrent][pos] == player) {
+                        for(int i=pos;i<=xCurrent;i++)
+                            toFill[yCurrent][i]=3;
+                        turnOver=true;
+                    }
                 }
-            } else {
-                done = true;
             }
         }
 
-        i = oI;
-        done = false;
+        //up-right
+        if (xCurrent - 1 >= 0 && yCurrent + 1 < 9) {
+            if (pieces[yCurrent + 1][xCurrent - 1] == other && pieces[yCurrent][xCurrent] == NONE) {
+                for (int pos = xCurrent - 2, pos2 = yCurrent + 2; pos >= 0 && pos2 < 8; pos--, pos2++) {
 
-        //right-down
-        while (i + 1 >= 0 && i + 1 < gameSizeInt && j + 1 >= 0 && j + 1 < gameSizeInt && !done) {
-            if (data[i + 1][j + 1] == notTurn) {
-                if (i + 2 < gameSizeInt && j + 2 < gameSizeInt) {
-                    if (data[i + 2][j + 2] == turn) {
-                        int m = i + 1;
-                        for (int k = j + 1; k > oJ; k--) {
-                            data[m][k] = turn;
-                            m--;
-                        }
-                        done = true;
-                    } else if (data[i + 2][j + 2] == notTurn) {
-                        i = i + 1;
-                        j = j + 1;
-                    } else {
-                        done = true;
+                    if (pieces[pos2][pos] == NONE) {
+                        break;
                     }
-                } else {
-                    done = true;
+
+                    if (pieces[pos2][pos] == player) {
+                        //fillDiagonalUpRight(yCurrent, pos, currentColor, pos2, xCurrent);
+                        for (int i=yCurrent, j=xCurrent;i<=pos2 && j>=pos;i++, j--)
+                            toFill[i][j]=3;
+                        turnOver=true;
+                    }
                 }
-            } else {
-                done = true;
             }
         }
 
-        i = oI;
-        j = oJ;
-        done = false;
 
-        //down
-        while (i >= 0 && i < gameSizeInt && j + 1 >= 0 && j + 1 < gameSizeInt && !done) {
-            if (data[i][j + 1] == notTurn) {
-                if (j + 2 < gameSizeInt) {
-                    if (data[i][j + 2] == turn) {
-                        for (int k = j + 1; k > oJ; k--) {
-                            data[i][k] = turn;
-                        }
-                        done = true;
-                    } else if (data[i][j + 2] == notTurn) {
-                        j = j + 1;
-                    } else {
-                        done = true;
+        //up-left
+        if (xCurrent + 1 < 9 && yCurrent + 1 < 9) {
+            if (pieces[yCurrent][xCurrent] == NONE && pieces[yCurrent + 1][xCurrent + 1] == other) {
+                for (int pos = xCurrent + 2, pos2 = yCurrent + 2; pos < 8 && pos2 < 8; pos++, pos2++) {
+
+                    if (pieces[pos2][pos] == NONE) {
+                        break;
                     }
-                } else {
-                    done = true;
+
+                    if (pieces[pos2][pos] == player) {
+                        for (int i=yCurrent, j=xCurrent;i<=pos2 && j<=pos;i++, j++)
+                            toFill[i][j]=3;
+                        turnOver=true;
+                    }
                 }
-            } else {
-                done = true;
             }
         }
 
-        j = oJ;
-        done = false;
+        //down-right
+        if (xCurrent - 1 >= 0 && yCurrent - 1 >= 0) {
+            if (pieces[yCurrent][xCurrent] == NONE && pieces[yCurrent - 1][xCurrent - 1] == other) {
+                for (int pos = xCurrent - 2, pos2 = yCurrent - 2; pos >= 0 && pos2 >= 0; pos--, pos2--) {
+
+                    if (pieces[pos2][pos] == NONE) {
+                        break;
+                    }
+
+                    if (pieces[pos2][pos] == player) {
+                        for (int i=yCurrent, j=xCurrent;i>=pos2 && j>=pos;i--, j--)
+                            toFill[i][j]=3;
+                        turnOver=true;
+                    }
+                }
+            }
+        }
 
         //down-left
-        while (i - 1 >= 0 && i - 1 < gameSizeInt && j + 1 >= 0 && j + 1 < gameSizeInt && !done) {
-            if (data[i - 1][j + 1] == notTurn) {
-                if (i - 2 >= 0 && i - 2 < gameSizeInt && j + 2 < gameSizeInt) {
-                    if (data[i - 2][j + 2] == turn) {
-                        int m = i - 1;
-                        for (int k = j + 1; k > oJ; k--) {
-                            data[m][k] = turn;
-                            m++;
-                        }
-                        done = true;
-                    } else if (data[i - 2][j + 2] == notTurn) {
-                        j = j + 1;
-                        i = i - 1;
-                    } else {
-                        done = true;
+        if (xCurrent + 1 < 9 && yCurrent - 1 >= 0) {
+            if (pieces[yCurrent][xCurrent] == NONE && pieces[yCurrent - 1][xCurrent + 1] == other) {
+                for (int pos = xCurrent + 2, pos2 = yCurrent - 2; pos < 8 && pos2 >= 0; pos++, pos2--) {
+
+                    if (pieces[pos2][pos] == NONE) {
+                        break;
                     }
-                } else {
-                    done = true;
-                }
-            } else {
-                done = true;
-            }
-        }
 
-        i = oI;
-        j = oJ;
-        done = false;
-
-        //left
-        while (i - 1 >= 0 && i - 1 < gameSizeInt && j >= 0 && j < gameSizeInt && !done) {
-            if (data[i - 1][j] == notTurn) {
-                if (i - 2 >= 0 && i - 2 < gameSizeInt) {
-                    if (data[i - 2][j] == turn) {
-                        for (int k = i - 2; k < oI; k++) {
-                            data[k][j] = turn;
-                        }
-                        done = true;
-                    } else if (data[i - 2][j] == notTurn) {
-                        i = i - 1;
-                    } else {
-                        done = true;
+                    if (pieces[pos2][pos] == player) {
+                        //fillDiagonalDownLeft(pos2, xCurrent, currentColor, yCurrent, pos);
+                        for (int i=yCurrent, j=xCurrent;i>=pos2 && j<=pos;i--, j++)
+                            toFill[i][j]=3;
+                        turnOver=true;
                     }
-                } else {
-                    done = true;
-                }
-            } else {
-                done = true;
-            }
-        }
-
-        i = oI;
-        done = false;
-
-        //left-up
-        while (i - 1 >= 0 && i - 1 < gameSizeInt && j - 1 >= 0 && j - 1 < gameSizeInt && !done) {
-            if (data[i - 1][j - 1] == notTurn) {
-                if (i - 2 >= 0 && i - 2 < gameSizeInt && j - 2 >= 0 && j - 2 < gameSizeInt) {
-                    if (data[i - 2][j - 2] == turn) {
-                        int m = i - 1;
-                        for (int k = j - 1; k < oJ; k++) {
-                            data[m][k] = turn;
-                            m++;
-                        }
-                        done = true;
-                    } else if (data[i - 2][j - 2] == notTurn) {
-                        i = i - 1;
-                        j = j - 1;
-                    } else {
-                        done = true;
-                    }
-                } else {
-                    done = true;
-                }
-            } else {
-                done = true;
-            }
-        }
-
-    }
-
-    static void count() {
-        black = 0;
-        white = 0;
-        free = 0;
-        blue = 0;
-        for(int i = 0 ;i < data.length;i++){
-            for(int j = 0 ;j < data[i].length;j++){
-                if(data[i][j] == 1){
-                    black++;
-                }
-                if(data[i][j] == 2){
-                    white++;
-                }
-                if(data[i][j] == 0){
-                    free++;
-                }
-                if(data[i][j] == -1){
-                    blue++;
                 }
             }
         }
-
+        fill();
     }
 
-    @Override
-    public void mouseEntered(MouseEvent e) {
-    }
+    private void fill() {
+    for ( int r=0; r<toFill.length; r++ )
+        for ( int c=0; c<toFill[0].length; c++ ) {
+            if (toFill[r][c] == 3 && player == BLACK) {
+                pieces[r][c]= 1;
+            }
+            else if (toFill[r][c] == 3 && player == WHITE) {
+                pieces[r][c] = 2;
+            }
+        }
+        for ( int r=0; r<toFill.length; r++ )
+            for ( int c=0; c<toFill[0].length; c++ )
+                toFill[r][c]=0;
+}
 
-    @Override
-    public void mouseExited(MouseEvent e) {
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-    }
+    public void mouseClicked( MouseEvent evt ) {}
+    public void mousePressed ( MouseEvent evt ) {}
+    public void mouseEntered ( MouseEvent evt ) {}
+    public void mouseExited  ( MouseEvent evt ) {}
 }
