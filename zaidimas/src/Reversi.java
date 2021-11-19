@@ -31,7 +31,7 @@ public class Reversi extends Canvas implements MouseListener
     {
         addMouseListener(this);
         boxes = new Rectangle[8][8];
-        pieces = new int[8][8];
+        pieces = new int[9][9];
         toFill = new int[8][8];
         for ( int r=0; r<toFill.length; r++ )
             for ( int c=0; c<toFill[0].length; c++ )
@@ -142,7 +142,7 @@ public class Reversi extends Canvas implements MouseListener
         }
 
         //down
-        if (yCurrent - 1 <= 8) {
+        if (yCurrent - 1 > 0) {
             if (pieces[yCurrent - 1][xCurrent] == other && pieces[yCurrent][xCurrent] == NONE) {
                 for (int pos = yCurrent - 2; pos >= 0; pos--) {
 
@@ -160,7 +160,7 @@ public class Reversi extends Canvas implements MouseListener
         }
 
         //up
-        if (yCurrent >= -1) {
+        if (yCurrent < 8) {
             if (pieces[yCurrent + 1][xCurrent] == other && pieces[yCurrent][xCurrent] == NONE) {
                 for (int pos = yCurrent + 2; pos < 8 ; pos++) {
 
@@ -178,7 +178,7 @@ public class Reversi extends Canvas implements MouseListener
         }
 
         //left
-        if (xCurrent + 1 < 9) {
+        if (xCurrent < 8) {
             if (pieces[yCurrent][xCurrent + 1] == other && pieces[yCurrent][xCurrent] == NONE) {
                 for (int pos = xCurrent + 2; pos < 8; pos++) {
 
@@ -197,7 +197,7 @@ public class Reversi extends Canvas implements MouseListener
 
 
         //right
-        if (xCurrent - 1 >= 0) {
+        if (xCurrent > 0) {
             if (pieces[yCurrent][xCurrent - 1] == other && pieces[yCurrent][xCurrent] == NONE) {
                 for (int pos = xCurrent - 2; pos >= 0; pos--) {
 
@@ -215,7 +215,7 @@ public class Reversi extends Canvas implements MouseListener
         }
 
         //up-right
-        if (xCurrent - 1 >= 0 && yCurrent + 1 < 9) {
+        if (xCurrent > 0 && yCurrent < 8) {
             if (pieces[yCurrent + 1][xCurrent - 1] == other && pieces[yCurrent][xCurrent] == NONE) {
                 for (int pos = xCurrent - 2, pos2 = yCurrent + 2; pos >= 0 && pos2 < 8; pos--, pos2++) {
 
@@ -235,7 +235,7 @@ public class Reversi extends Canvas implements MouseListener
 
 
         //up-left
-        if (xCurrent + 1 < 9 && yCurrent + 1 < 9) {
+        if (xCurrent < 8 && yCurrent < 8) {
             if (pieces[yCurrent][xCurrent] == NONE && pieces[yCurrent + 1][xCurrent + 1] == other) {
                 for (int pos = xCurrent + 2, pos2 = yCurrent + 2; pos < 8 && pos2 < 8; pos++, pos2++) {
 
@@ -253,7 +253,7 @@ public class Reversi extends Canvas implements MouseListener
         }
 
         //down-right
-        if (xCurrent - 1 >= 0 && yCurrent - 1 >= 0) {
+        if (xCurrent > 0 && yCurrent > 0) {
             if (pieces[yCurrent][xCurrent] == NONE && pieces[yCurrent - 1][xCurrent - 1] == other) {
                 for (int pos = xCurrent - 2, pos2 = yCurrent - 2; pos >= 0 && pos2 >= 0; pos--, pos2--) {
 
@@ -271,7 +271,7 @@ public class Reversi extends Canvas implements MouseListener
         }
 
         //down-left
-        if (xCurrent + 1 < 9 && yCurrent - 1 >= 0) {
+        if (xCurrent < 8 && yCurrent > 0) {
             if (pieces[yCurrent][xCurrent] == NONE && pieces[yCurrent - 1][xCurrent + 1] == other) {
                 for (int pos = xCurrent + 2, pos2 = yCurrent - 2; pos < 8 && pos2 >= 0; pos++, pos2--) {
 
